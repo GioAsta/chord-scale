@@ -289,9 +289,10 @@
 
   .cinfo { flex: 1; min-width: 0; }
   .cname {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px; letter-spacing: 0.5px; color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 18px; font-weight: 700; letter-spacing: 0.1px; color: var(--text);
   }
+  .cname .rl { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.5px; }
   .crole { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0.2px; }
 
   .chev { font-size: 18px; color: var(--text3); transition: transform .22s; flex-shrink: 0; }
@@ -307,58 +308,19 @@
     border-top: 1px solid var(--border2);
   }
 
-  /* ── DIAGRAM ── */
-  .dgm { display: inline-block; user-select: none; }
+  /* ── DIAGRAM (SVG-based) ── */
+  .dgm { display: inline-block; user-select: none; text-align: center; }
   .dgm-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px; letter-spacing: 1px;
-    text-align: center; margin-bottom: 6px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 0.3px;
+    text-align: center; margin-bottom: 8px;
     color: var(--gold);
   }
-
-  .dgm-top { display: flex; align-items: flex-end; margin-bottom: 3px; }
-  .dgm-top-spacer { width: 20px; flex-shrink: 0; }
-  .dgm-top-cells { display: flex; }
-  .dgm-top-cell {
-    width: 28px; text-align: center;
-    font-size: 12px; font-weight: 700;
-    color: var(--text2); line-height: 1;
-  }
-  .dgm-top-cell.x { color: var(--pink); }
-
-  .dgm-nut-row { display: flex; align-items: center; }
-  .dgm-nut-spacer { width: 20px; flex-shrink: 0; }
-  .dgm-nut { flex: 1; height: 5px; background: var(--text); border-radius: 2px; }
-
-  .dgm-row { display: flex; align-items: center; }
-  .dgm-fnum {
-    width: 20px; font-size: 9px; color: var(--text3);
-    text-align: right; padding-right: 4px; flex-shrink: 0; line-height: 28px;
-    font-weight: 600;
-  }
-  .dgm-cells { display: flex; border-left: 1.5px solid var(--text3); }
-  .dgm-cell {
-    width: 28px; height: 28px;
-    border-right: 1.5px solid var(--text3);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-  .dgm-row:last-child .dgm-cell { border-bottom: none; }
-  .dgm-row:first-child .dgm-cell { border-top: 1px solid var(--border); }
-
-  .dot {
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 800; color: #0e0e10;
-    position: relative; z-index: 2;
-    box-shadow: 0 0 8px rgba(245,200,66,0.5);
-  }
-
+  .dgm-title .rl { font-family: 'Bebas Neue', sans-serif; font-size: 18px; }
+  .dgm svg { display: block; margin: 0 auto; }
   .dgm-pos {
     font-size: 10px; color: var(--text3);
-    text-align: center; margin-top: 5px;
+    text-align: center; margin-top: 4px;
     font-weight: 600; letter-spacing: 0.5px;
   }
 
@@ -631,54 +593,143 @@ function getVars(note, quality) {
   return (VARS[key]&&VARS[key][note]) || [];
 }
 
-// ─── SHARED DIAGRAM RENDERER ───────────────────────────────────────────────
+// ─── CHORD NAME FORMATTING ─────────────────────────────────────────────────
+// Returns HTML with root letter in Bebas, suffix in Barlow lowercase
+function fmtChord(sym) {
+  // sym like: C, Am, Cmaj7, F#m, Bb, Dsus4, Em7, etc.
+  // Root = first 1-3 chars that form the note name (letter + optional #/b)
+  const m = sym.match(/^([A-G][#b]?)(.*)/);
+  if (!m) return `<span class="rl">${sym}</span>`;
+  const root = m[1], suffix = m[2];
+  return `<span class="rl">${root}</span>${suffix}`;
+}
+
+// ─── SVG DIAGRAM RENDERER ─────────────────────────────────────────────────
+/*
+  6 strings drawn as vertical lines.
+  FRETS rows drawn as horizontal lines.
+  Dots placed at exact string x-position, mid-fret y-position.
+
+  Layout:
+    leftPad  = space for fret numbers
+    topPad   = space for open/mute symbols
+    strGap   = horizontal spacing between strings
+    fretH    = height of each fret row
+    nutH     = height of nut bar
+
+  String index 0 = low E (leftmost), 5 = high e (rightmost)
+*/
 function renderDiagramFromData(data, label) {
   if (!data) return `<div style="font-size:12px;color:var(--text3);padding:20px 0;text-align:center;font-style:italic">Diagramma non disponibile</div>`;
+
   const {open, baseFret, dots, barre} = data;
-  const FRETS=4, STR=6;
-  const dotMap={};
-  (dots||[]).forEach(([str,fret,finger])=>{
-    if(finger==='o'||finger==='x') return;
-    const rf=fret-baseFret+1;
-    if(rf<1||rf>FRETS) return;
-    if(!dotMap[rf])dotMap[rf]={};
-    dotMap[rf][str]=finger;
+  const FRETS = 4, STRINGS = 6;
+
+  const LP = 22;   // left pad (fret numbers)
+  const TP = 22;   // top pad (open/mute symbols)
+  const SG = 22;   // string gap (px between strings)
+  const FH = 22;   // fret height
+  const NW = baseFret === 1 ? 4 : 2; // nut width
+  const DR = 8;    // dot radius
+  const totalW = LP + (STRINGS - 1) * SG + LP;
+  const totalH = TP + NW + FRETS * FH + 8;
+
+  // String x positions
+  const sx = i => LP + i * SG;
+  // Fret y positions: top of fret row rf (1-based)
+  const fy = rf => TP + NW + (rf - 1) * FH;
+  // Mid-fret y
+  const fmy = rf => fy(rf) + FH / 2;
+
+  // Build dotMap[string][absoluteFret] = finger
+  const dotMap = {};
+  (dots || []).forEach(([str, fret, finger]) => {
+    if (finger === 'o' || finger === 'x') return;
+    if (!dotMap[str]) dotMap[str] = {};
+    dotMap[str][fret] = finger;
   });
-  let h=`<div class="dgm">`;
-  h+=`<div class="dgm-title">${label}</div>`;
-  h+=`<div class="dgm-top"><div class="dgm-top-spacer"></div><div class="dgm-top-cells">`;
-  for(let s=0;s<STR;s++){
-    const o=open[s];
-    if(o==='x') h+=`<div class="dgm-top-cell x">×</div>`;
-    else if(o==='o') h+=`<div class="dgm-top-cell">○</div>`;
-    else h+=`<div class="dgm-top-cell"></div>`;
+
+  let s = `<div class="dgm">`;
+  s += `<div class="dgm-title">${fmtChord(label)}</div>`;
+  s += `<svg width="${totalW}" height="${totalH}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // ── Fret horizontal lines ──
+  for (let rf = 0; rf <= FRETS; rf++) {
+    const y = TP + NW + rf * FH;
+    const lw = rf === 0 ? 0.5 : 0.5;
+    s += `<line x1="${sx(0)}" y1="${y}" x2="${sx(STRINGS-1)}" y2="${y}" stroke="#55524e" stroke-width="${lw}"/>`;
   }
-  h+=`</div></div>`;
-  if(baseFret===1) h+=`<div class="dgm-nut-row"><div class="dgm-nut-spacer"></div><div class="dgm-nut"></div></div>`;
-  for(let rf=1;rf<=FRETS;rf++){
-    const af=baseFret+rf-1;
-    h+=`<div class="dgm-row"><div class="dgm-fnum">${af}</div><div class="dgm-cells">`;
-    const hasB=barre&&barre.fret===af;
-    for(let s=0;s<STR;s++){
-      const inB=hasB&&s>=barre.fromStr&&s<=barre.toStr;
-      const hasDot=dotMap[rf]&&dotMap[rf][s]!==undefined;
-      h+=`<div class="dgm-cell" style="position:relative">`;
-      if(inB){
-        if(s===barre.fromStr){
-          const span=(barre.toStr-barre.fromStr+1)*28;
-          h+=`<div style="position:absolute;left:4px;top:50%;transform:translateY(-50%);width:${span-8}px;height:20px;background:var(--gold);border-radius:10px;z-index:3;box-shadow:0 0 10px rgba(245,200,66,0.5)"></div>`;
-        }
-        if(hasDot) h+=`<div class="dot" style="z-index:4;background:#0e0e10;color:var(--gold);border:2px solid var(--gold)">${dotMap[rf][s]}</div>`;
-      } else if(hasDot){
-        h+=`<div class="dot">${dotMap[rf][s]}</div>`;
-      }
-      h+=`</div>`;
+
+  // ── String vertical lines ──
+  for (let i = 0; i < STRINGS; i++) {
+    const x = sx(i);
+    s += `<line x1="${x}" y1="${TP + NW}" x2="${x}" y2="${TP + NW + FRETS * FH}" stroke="#9b9690" stroke-width="1.2"/>`;
+  }
+
+  // ── Nut or position indicator ──
+  if (baseFret === 1) {
+    s += `<rect x="${sx(0)}" y="${TP}" width="${(STRINGS-1)*SG}" height="${NW}" fill="#f0ede8" rx="1"/>`;
+  }
+
+  // ── Fret numbers (left side) ──
+  for (let rf = 1; rf <= FRETS; rf++) {
+    const y = fmy(rf);
+    s += `<text x="${LP - 5}" y="${y + 4}" text-anchor="end" font-family="Barlow,sans-serif" font-size="9" font-weight="600" fill="#55524e">${baseFret + rf - 1}</text>`;
+  }
+
+  // ── Open / Muted symbols (top row) ──
+  for (let i = 0; i < STRINGS; i++) {
+    const x = sx(i);
+    const o = open[i];
+    if (o === 'x') {
+      // × in pink
+      const d = 4;
+      s += `<line x1="${x-d}" y1="${TP/2-d}" x2="${x+d}" y2="${TP/2+d}" stroke="#ff3d7f" stroke-width="1.8" stroke-linecap="round"/>`;
+      s += `<line x1="${x+d}" y1="${TP/2-d}" x2="${x-d}" y2="${TP/2+d}" stroke="#ff3d7f" stroke-width="1.8" stroke-linecap="round"/>`;
+    } else if (o === 'o') {
+      s += `<circle cx="${x}" cy="${TP/2}" r="5" fill="none" stroke="#9b9690" stroke-width="1.5"/>`;
     }
-    h+=`</div></div>`;
   }
-  if(baseFret>1) h+=`<div class="dgm-pos">${baseFret}° TASTO</div>`;
-  h+=`</div>`;
-  return h;
+
+  // ── Barre ──
+  if (barre) {
+    const rf = barre.fret - baseFret + 1;
+    if (rf >= 1 && rf <= FRETS) {
+      const y = fmy(rf);
+      const x1 = sx(barre.fromStr);
+      const x2 = sx(barre.toStr);
+      s += `<rect x="${x1 - DR}" y="${y - DR}" width="${x2 - x1 + DR*2}" height="${DR*2}" rx="${DR}" fill="#f5c842" opacity="0.95"/>`;
+      // Barre label "1" at leftmost string
+      s += `<text x="${x1}" y="${y + 4}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="9" font-weight="800" fill="#0e0e10">1</text>`;
+    }
+  }
+
+  // ── Dots ──
+  for (let i = 0; i < STRINGS; i++) {
+    if (!dotMap[i]) continue;
+    for (const [fretStr, finger] of Object.entries(dotMap[i])) {
+      const fret = parseInt(fretStr);
+      const rf = fret - baseFret + 1;
+      if (rf < 1 || rf > FRETS) continue;
+      const x = sx(i);
+      const y = fmy(rf);
+      // Skip if this position is covered by barre (barre draws its own)
+      if (barre && barre.fret === fret && i >= barre.fromStr && i <= barre.toStr) continue;
+      s += `<circle cx="${x}" cy="${y}" r="${DR}" fill="#f5c842" filter="url(#glow)"/>`;
+      s += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="9" font-weight="800" fill="#0e0e10">${finger}</text>`;
+    }
+  }
+
+  // ── Glow filter ──
+  s += `<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="2" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter></defs>`;
+
+  s += `</svg>`;
+  if (baseFret > 1) s += `<div class="dgm-pos">${baseFret}° tasto</div>`;
+  s += `</div>`;
+  return s;
 }
 
 const DB = {
@@ -720,6 +771,13 @@ function renderDiagram(key, quality) {
   return renderDiagramFromData(DB[sym], sym);
 }
 
+// Format chord name: root letter big, suffix lowercase normal weight
+function fmtChord(sym) {
+  const m = sym.match(/^([A-G][#b]?)(.*)/);
+  if (!m) return sym;
+  return `<span class="rl">${m[1]}</span>${m[2]}`;
+}
+
 let mode='major', selKey=null, openId=null;
 
 function setMode(m){
@@ -754,46 +812,44 @@ function toggle(id){
   openId=row.classList.contains('open')?id:null;
 }
 
-function varLabel(lbl) {
-  // detect type for color
-  if(/maj7|M7/.test(lbl)) return 'var-maj7';
+function varColor(lbl) {
+  if(/maj7|M7/.test(lbl))   return 'var-maj7';
   if(/m7b5|dim7/.test(lbl)) return 'var-dim';
-  if(/7/.test(lbl)) return 'var-7';
-  if(/add9|9/.test(lbl)) return 'var-9';
-  if(/sus/.test(lbl)) return 'var-sus';
+  if(/7/.test(lbl))          return 'var-7';
+  if(/add9|[^m]9/.test(lbl))return 'var-9';
+  if(/sus/.test(lbl))        return 'var-sus';
   return 'var-other';
 }
 
 function chordsBlock(notes,qs,rs){
   return notes.map((note,i)=>{
-    const sym=csym(note,qs[i]);
-    const id='cr'+i+note+mode;
-    const bc=i===0?'ton':i===4?'dom':'';
-    const variations=getVars(note, qs[i]);
+    const sym = csym(note,qs[i]);
+    const id  = 'cr'+i+note+mode;
+    const bc  = i===0?'ton':i===4?'dom':'';
+    const variations = getVars(note, qs[i]);
 
-    // Variation rows (each as a sub-row inside the same group)
     const varRows = variations.map((v,vi)=>{
-      const vid='var'+i+vi+note+mode;
-      const flatLabel = v.label
+      const vid = 'var'+i+vi+note+mode;
+      // Display label: replace sharp roots with "X#/Xb"
+      const dl = v.label
         .replace(/C#/g,'C#/Db').replace(/D#/g,'D#/Eb')
         .replace(/F#/g,'F#/Gb').replace(/G#/g,'G#/Ab').replace(/A#/g,'A#/Bb');
-      // keep label short — just the flat notation not the slash version for display
-      const dispLabel = v.label
-        .replace(/C#/g,fb('C#')).replace(/D#/g,fb('D#'))
-        .replace(/F#/g,fb('F#')).replace(/G#/g,fb('G#')).replace(/A#/g,fb('A#'));
-      const vc=varLabel(v.label);
+      const vc = varColor(v.label);
+      // Badge shows only the suffix (e.g. "maj7", "sus4", "7")
+      const sfx = v.label.match(/^[A-G][#b]?m?(.+)$/);
+      const badge = sfx ? sfx[1] : v.label;
       return `
         <div class="chord-row var-row" id="${vid}">
           <div class="chord-sum" onclick="toggle('${vid}')">
-            <div class="cbadge vbadge ${vc}">${dispLabel.replace(/(.+?)(maj7|mM7|m7b5|dim7|sus[24]|add9|m9|M7|7|9)/,'$2')}</div>
+            <div class="cbadge vbadge ${vc}">${badge}</div>
             <div class="cinfo">
-              <div class="cname" style="font-size:16px">${dispLabel}</div>
+              <div class="cname">${fmtChord(dl)}</div>
               <div class="crole">Variazione di ${sym}</div>
             </div>
             <div class="chev">›</div>
           </div>
           <div class="tab-panel">
-            <div class="tab-inner">${renderDiagramFromData(v, dispLabel)}</div>
+            <div class="tab-inner">${renderDiagramFromData(v, dl)}</div>
           </div>
         </div>`;
     }).join('');
@@ -802,7 +858,7 @@ function chordsBlock(notes,qs,rs){
       <div class="chord-row" id="${id}">
         <div class="chord-sum" onclick="toggle('${id}')">
           <div class="cbadge ${bc}">${sym}</div>
-          <div class="cinfo"><div class="cname">${sym}</div><div class="crole">${rs[i]}</div></div>
+          <div class="cinfo"><div class="cname">${fmtChord(sym)}</div><div class="crole">${rs[i]}</div></div>
           <div class="chev">›</div>
         </div>
         <div class="tab-panel">
@@ -863,3 +919,4 @@ document.getElementById('result').innerHTML=`
 </script>
 </body>
 </html>
+
