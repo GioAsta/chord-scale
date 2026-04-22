@@ -4,139 +4,413 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Chord & Scale</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#f5f5f7; --surface:#fff; --surface2:#f5f5f7;
-    --border:rgba(0,0,0,0.09); --border2:rgba(0,0,0,0.05);
-    --text:#1d1d1f; --text2:#6e6e73; --text3:#aeaeb2;
-    --blue:#0071e3; --blue-bg:rgba(0,113,227,0.10);
-    --r:12px;
+    --bg:       #0e0e10;
+    --surface:  #16161a;
+    --surface2: #1e1e24;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.04);
+    --text:     #f0ede8;
+    --text2:    #9b9690;
+    --text3:    #55524e;
+
+    /* Bowie palette */
+    --gold:     #f5c842;
+    --gold-bg:  rgba(245,200,66,0.12);
+    --cyan:     #00e5d4;
+    --cyan-bg:  rgba(0,229,212,0.10);
+    --pink:     #ff3d7f;
+    --pink-bg:  rgba(255,61,127,0.12);
+    --lime:     #b8f230;
+    --lime-bg:  rgba(184,242,48,0.10);
+
+    --r: 14px;
   }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,'Helvetica Neue',sans-serif;
-    min-height:100vh;padding-bottom:60px;-webkit-font-smoothing:antialiased}
 
-  .header{padding:52px 24px 0;max-width:560px;margin:0 auto}
-  .header h1{font-size:34px;font-weight:700;letter-spacing:-.5px}
-  .header p{font-size:15px;color:var(--text2);margin-top:4px}
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
 
-  .segment{display:flex;background:rgba(118,118,128,.12);border-radius:9px;padding:2px;
-    width:calc(100% - 48px);max-width:512px;margin:20px auto 0}
-  .seg-btn{flex:1;padding:7px 0;border:none;background:transparent;font-family:inherit;
-    font-size:13px;font-weight:500;color:var(--text2);border-radius:7px;cursor:pointer;transition:all .2s}
-  .seg-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.08)}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 72px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 
-  .key-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
-    padding:20px;max-width:560px;margin:0 auto}
-  .key-btn{aspect-ratio:1;background:#fff;border:1px solid var(--border);border-radius:var(--r);
-    font-family:inherit;font-size:15px;font-weight:500;color:var(--text);cursor:pointer;
-    transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,.04);letter-spacing:-.2px}
-  .key-btn .enh{font-size:9px;color:var(--text3);margin-top:1px}
-  .key-btn:active{transform:scale(.92)}
-  .key-btn.sel{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.3)}
-  .key-btn.sel .enh{color:rgba(255,255,255,.65)}
-  .key-btn.minor-mode.sel{background:#1c1c1e;border-color:#1c1c1e;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  /* ── HEADER ── */
+  .header {
+    padding: 48px 24px 0;
+    max-width: 560px;
+    margin: 0 auto;
+    position: relative;
+  }
 
-  .result{max-width:560px;margin:0 auto;padding:0 20px;animation:fu .25s ease both}
-  @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .header-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
 
-  .card{background:#fff;border-radius:16px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .card-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 14vw, 80px);
+    letter-spacing: 2px;
+    line-height: 0.92;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--pink) 50%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-  .penta-main{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
-  .penta-key{font-size:36px;font-weight:600;letter-spacing:-1px;color:var(--blue);line-height:1}
-  .penta-key.dk{color:var(--text)}
-  .penta-sub{font-size:13px;color:var(--text2)}
-  .notes-row{display:flex;flex-wrap:wrap;gap:6px}
-  .note-tag{background:var(--blue-bg);color:var(--blue);font-size:13px;font-weight:500;padding:4px 10px;border-radius:20px}
-  .note-tag.dk{background:rgba(0,0,0,.06);color:var(--text)}
-  .div{height:1px;background:var(--border2);margin:14px 0}
-  .hint{font-size:12px;color:var(--text2);line-height:1.55}
-  .hint strong{color:var(--text);font-weight:500}
+  .header-bolt {
+    display: inline-block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 14vw, 80px);
+    line-height: 0.92;
+    color: var(--gold);
+    -webkit-text-fill-color: var(--gold);
+    margin-left: 6px;
+    filter: drop-shadow(0 0 18px rgba(245,200,66,0.5));
+  }
 
-  .chords-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px}
-  .chords-head{padding:16px 20px 4px}
-  .chord-row{border-bottom:1px solid var(--border2)}
-  .chord-row:last-child{border-bottom:none}
-  .chord-sum{display:flex;align-items:center;padding:12px 20px;cursor:pointer;gap:12px;user-select:none;-webkit-user-select:none}
-  .chord-sum:active{background:rgba(0,0,0,.03)}
-  .cbadge{width:42px;height:42px;border-radius:10px;background:var(--surface2);
-    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;
-    color:var(--text);flex-shrink:0;letter-spacing:-.3px}
-  .cbadge.ton{background:var(--blue-bg);color:var(--blue)}
-  .cbadge.dom{background:rgba(255,149,0,.10);color:#bf7000}
-  .cinfo{flex:1;min-width:0}
-  .cname{font-size:16px;font-weight:500;letter-spacing:-.3px}
-  .crole{font-size:12px;color:var(--text2);margin-top:1px}
-  .chev{font-size:14px;color:var(--text3);transition:transform .22s;flex-shrink:0}
-  .chord-row.open .chev{transform:rotate(90deg)}
-  .tab-panel{max-height:0;overflow:hidden;transition:max-height .3s ease}
-  .chord-row.open .tab-panel{max-height:320px}
-  .tab-inner{padding:4px 20px 18px;display:flex;justify-content:center}
+  .header p {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 10px;
+    letter-spacing: 0.3px;
+    font-style: italic;
+  }
 
-  /* ── CHORD DIAGRAM ── */
-  /*
-    Layout (top→bottom):
-    1. open/muted row  (×  ○  ○ etc.)
-    2. chord name above nut
-    3. nut (thick bar)
-    4. fret rows
-    Each cell = one string crossing one fret
-    Strings left→right: E A D G B e
-  */
-  .dgm{display:inline-block;font-family:-apple-system,sans-serif;user-select:none}
-  .dgm-title{font-size:13px;font-weight:600;text-align:center;margin-bottom:4px;letter-spacing:-.2px}
+  /* ── SEGMENT ── */
+  .segment {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px;
+    width: calc(100% - 48px);
+    max-width: 320px;
+    margin: 24px auto 0;
+  }
 
-  /* open/muted symbols above nut */
-  .dgm-top{display:flex;align-items:flex-end;margin-bottom:2px}
-  .dgm-top-spacer{width:18px;flex-shrink:0} /* aligns with fret numbers */
-  .dgm-top-cells{display:flex}
-  .dgm-top-cell{width:26px;text-align:center;font-size:11px;color:var(--text2);line-height:1}
-  .dgm-top-cell.x{color:var(--text3)}
+  .seg-btn {
+    flex: 1; padding: 9px 0; border: none; background: transparent;
+    font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text3); border-radius: 100px; cursor: pointer; transition: all .25s;
+  }
 
-  /* nut */
-  .dgm-nut-row{display:flex;align-items:center;margin-bottom:0}
-  .dgm-nut-spacer{width:18px;flex-shrink:0}
-  .dgm-nut{flex:1;height:5px;background:var(--text);border-radius:1px}
+  .seg-btn.active {
+    background: var(--gold);
+    color: #0e0e10;
+    box-shadow: 0 0 20px rgba(245,200,66,0.35);
+  }
 
-  /* fret rows */
-  .dgm-row{display:flex;align-items:center}
-  .dgm-fnum{width:18px;font-size:9px;color:var(--text3);text-align:right;padding-right:3px;flex-shrink:0;line-height:26px}
-  .dgm-cells{display:flex;border-left:1.5px solid var(--text2)}
-  .dgm-cell{width:26px;height:26px;border-right:1.5px solid var(--text2);
-    border-bottom:1px solid var(--border);
-    display:flex;align-items:center;justify-content:center;position:relative}
-  /* remove bottom border on last row */
-  .dgm-row:last-child .dgm-cell{border-bottom:none}
-  /* add top border on first fret row */
-  .dgm-row:first-child .dgm-cell{border-top:1px solid var(--border)}
+  .seg-btn.minor-active {
+    background: var(--cyan);
+    color: #0e0e10;
+    box-shadow: 0 0 20px rgba(0,229,212,0.35);
+  }
 
-  /* dot */
-  .dot{width:18px;height:18px;border-radius:50%;background:#1d1d1f;
-    display:flex;align-items:center;justify-content:center;
-    font-size:9px;font-weight:700;color:#fff;position:relative;z-index:2}
-  /* barre: spans across marked strings */
-  .barre-cell{position:relative}
-  .barre-seg{position:absolute;top:50%;transform:translateY(-50%);
-    height:18px;border-radius:9px;background:#1d1d1f;z-index:2}
+  /* ── KEY GRID ── */
+  .key-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 20px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
 
-  /* fret position label below diagram */
-  .dgm-pos{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
+  .key-btn {
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(28px, 7.5vw, 38px);
+    letter-spacing: 1px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .18s ease;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1.15;
+    position: relative;
+    overflow: hidden;
+  }
 
-  .empty{text-align:center;padding:52px 24px}
-  .empty-icon{font-size:38px;opacity:.3;margin-bottom:10px}
-  .empty-text{font-size:15px;color:var(--text2)}
+  .key-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--gold), var(--pink));
+    opacity: 0;
+    transition: opacity .18s;
+  }
+
+  .key-btn span { position: relative; z-index: 1; }
+  .key-btn .enh { font-size: 9px; color: var(--text3); margin-top: 1px; position: relative; z-index: 1; font-family: 'Barlow', sans-serif; font-weight: 600; letter-spacing: 0.5px; }
+
+  .key-btn:active { transform: scale(.90); }
+
+  .key-btn.sel {
+    border-color: var(--gold);
+    color: #0e0e10;
+    box-shadow: 0 0 24px rgba(245,200,66,0.4);
+  }
+  .key-btn.sel::before { opacity: 1; }
+  .key-btn.sel .enh { color: rgba(0,0,0,0.6); }
+
+  .key-btn.minor-mode { color: var(--text3); }
+  .key-btn.minor-mode::before {
+    background: linear-gradient(135deg, var(--cyan), #007aff);
+  }
+  .key-btn.minor-mode.sel {
+    border-color: var(--cyan);
+    color: #0e0e10;
+    box-shadow: 0 0 24px rgba(0,229,212,0.4);
+  }
+
+  /* ── RESULT ── */
+  .result {
+    max-width: 560px; margin: 0 auto; padding: 0 20px;
+    animation: fu .28s ease both;
+  }
+  @keyframes fu { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── PENTA CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,200,66,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 16px;
+  }
+
+  .penta-main { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+
+  .penta-key {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; letter-spacing: 1px;
+    color: var(--gold); line-height: 1;
+    text-shadow: 0 0 30px rgba(245,200,66,0.4);
+  }
+  .penta-key.cyan { color: var(--cyan); text-shadow: 0 0 30px rgba(0,229,212,0.4); }
+  .penta-key.sm   { font-size: 32px; color: var(--text2); text-shadow: none; }
+
+  .penta-sub { font-size: 13px; color: var(--text2); font-weight: 400; }
+
+  .notes-row { display: flex; flex-wrap: wrap; gap: 7px; }
+
+  .note-tag {
+    background: var(--gold-bg);
+    border: 1px solid rgba(245,200,66,0.25);
+    color: var(--gold);
+    font-size: 13px; font-weight: 700;
+    padding: 5px 12px; border-radius: 100px;
+    letter-spacing: 0.3px;
+  }
+  .note-tag.cyan {
+    background: var(--cyan-bg);
+    border-color: rgba(0,229,212,0.2);
+    color: var(--cyan);
+  }
+
+  .divider { height: 1px; background: var(--border2); margin: 16px 0; }
+
+  .hint { font-size: 12px; color: var(--text2); line-height: 1.6; font-style: italic; }
+  .hint strong { color: var(--text); font-style: normal; font-weight: 700; }
+
+  /* ── CHORDS CARD ── */
+  .chords-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .chords-head { padding: 18px 22px 6px; }
+
+  .chord-row { border-bottom: 1px solid var(--border2); }
+  .chord-row:last-child { border-bottom: none; }
+
+  .chord-sum {
+    display: flex; align-items: center;
+    padding: 13px 22px; cursor: pointer; gap: 14px;
+    user-select: none; -webkit-user-select: none;
+    transition: background .15s;
+  }
+  .chord-sum:active { background: rgba(255,255,255,.03); }
+
+  .cbadge {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px; letter-spacing: 0.5px;
+    color: var(--text2); flex-shrink: 0;
+  }
+  .cbadge.ton {
+    background: var(--gold-bg);
+    border-color: rgba(245,200,66,0.3);
+    color: var(--gold);
+    box-shadow: 0 0 12px rgba(245,200,66,0.15);
+  }
+  .cbadge.dom {
+    background: var(--pink-bg);
+    border-color: rgba(255,61,127,0.25);
+    color: var(--pink);
+  }
+
+  .cinfo { flex: 1; min-width: 0; }
+  .cname {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 0.5px; color: var(--text);
+  }
+  .crole { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0.2px; }
+
+  .chev { font-size: 18px; color: var(--text3); transition: transform .22s; flex-shrink: 0; }
+  .chord-row.open .chev { transform: rotate(90deg); color: var(--gold); }
+
+  .tab-panel { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .chord-row.open .tab-panel { max-height: 360px; }
+
+  .tab-inner {
+    padding: 6px 22px 20px;
+    display: flex; justify-content: center;
+    background: var(--surface2);
+    border-top: 1px solid var(--border2);
+  }
+
+  /* ── DIAGRAM ── */
+  .dgm { display: inline-block; user-select: none; }
+  .dgm-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 1px;
+    text-align: center; margin-bottom: 6px;
+    color: var(--gold);
+  }
+
+  .dgm-top { display: flex; align-items: flex-end; margin-bottom: 3px; }
+  .dgm-top-spacer { width: 20px; flex-shrink: 0; }
+  .dgm-top-cells { display: flex; }
+  .dgm-top-cell {
+    width: 28px; text-align: center;
+    font-size: 12px; font-weight: 700;
+    color: var(--text2); line-height: 1;
+  }
+  .dgm-top-cell.x { color: var(--pink); }
+
+  .dgm-nut-row { display: flex; align-items: center; }
+  .dgm-nut-spacer { width: 20px; flex-shrink: 0; }
+  .dgm-nut { flex: 1; height: 5px; background: var(--text); border-radius: 2px; }
+
+  .dgm-row { display: flex; align-items: center; }
+  .dgm-fnum {
+    width: 20px; font-size: 9px; color: var(--text3);
+    text-align: right; padding-right: 4px; flex-shrink: 0; line-height: 28px;
+    font-weight: 600;
+  }
+  .dgm-cells { display: flex; border-left: 1.5px solid var(--text3); }
+  .dgm-cell {
+    width: 28px; height: 28px;
+    border-right: 1.5px solid var(--text3);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .dgm-row:last-child .dgm-cell { border-bottom: none; }
+  .dgm-row:first-child .dgm-cell { border-top: 1px solid var(--border); }
+
+  .dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #0e0e10;
+    position: relative; z-index: 2;
+    box-shadow: 0 0 8px rgba(245,200,66,0.5);
+  }
+
+  .dgm-pos {
+    font-size: 10px; color: var(--text3);
+    text-align: center; margin-top: 5px;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+
+  /* ── VARIATION ROWS ── */
+  .var-row { background: rgba(255,255,255,0.015); }
+  .var-row .chord-sum { padding-left: 32px; }
+
+  .vbadge { font-family: 'Barlow', sans-serif; font-size: 10px !important; font-weight: 700; letter-spacing: 0.5px; }
+  .var-maj7 { background: rgba(0,229,212,0.10) !important; color: var(--cyan) !important; border-color: rgba(0,229,212,0.2) !important; }
+  .var-7    { background: rgba(255,61,127,0.10) !important; color: var(--pink) !important; border-color: rgba(255,61,127,0.2) !important; }
+  .var-9    { background: rgba(184,242,48,0.10) !important; color: var(--lime) !important; border-color: rgba(184,242,48,0.2) !important; }
+  .var-sus  { background: rgba(160,130,255,0.10) !important; color: #b388ff !important; border-color: rgba(160,130,255,0.2) !important; }
+  .var-dim  { background: rgba(255,149,0,0.10) !important; color: #ff9500 !important; border-color: rgba(255,149,0,0.2) !important; }
+  .var-other{ background: var(--surface2) !important; color: var(--text2) !important; }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 60px 24px; }
+  .empty-icon {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px; letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--gold), var(--pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.25;
+    margin-bottom: 14px;
+  }
+  .empty-text { font-size: 15px; color: var(--text3); font-style: italic; }
+
+  /* ── DECORATIVE STRIPE ── */
+  .stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--pink), var(--gold), var(--cyan), var(--lime), var(--pink));
+    background-size: 200%;
+    animation: stripe-anim 4s linear infinite;
+    margin: 28px 0 0;
+  }
+  @keyframes stripe-anim { 0%{background-position:0%} 100%{background-position:200%} }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Chord &amp; Scale</h1>
-  <p>Tonalità, accordi e pentatonica</p>
+  <div class="header-eyebrow">✦ Guitar Reference Tool</div>
+  <div>
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,14vw,80px);letter-spacing:2px;line-height:0.92;background:linear-gradient(135deg,#f5c842 0%,#ff3d7f 50%,#00e5d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CHORD</span><span class="header-bolt">⚡</span><span style="font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,14vw,80px);letter-spacing:2px;line-height:0.92;background:linear-gradient(135deg,#f5c842 0%,#ff3d7f 50%,#00e5d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">SCALE</span>
+  </div>
+  <p>Tonalità · Accordi · Pentatonica</p>
 </div>
 
-<div class="segment">
+<div class="stripe"></div>
+
+<div class="segment" id="segment">
   <button class="seg-btn active" onclick="setMode('major')" id="btn-major">Maggiori</button>
   <button class="seg-btn" onclick="setMode('minor')" id="btn-minor">Minori</button>
 </div>
@@ -145,7 +419,6 @@
 <div id="result"></div>
 
 <script>
-// ─── MUSIC THEORY ──────────────────────────────────────────────────────────
 const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const FLAT={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
 const fb=n=>FLAT[n]||n;
@@ -163,361 +436,298 @@ const mR=['I – Tonica','II – Sopratonica','III – Mediante','IV – Sottodo
 
 function csym(note,q){const n=fb(note);return q==='maj'?n:q==='min'?n+'m':n+'°'}
 
-// ─── CHORD DATABASE ────────────────────────────────────────────────────────
-/*
-  Each chord:
-    name: display string
-    open: array of 6 [E A D G B e low→high], values: 'x'=mute, 'o'=open, null=fretted
-    baseFret: first fret shown (1 = includes open/nut)
-    dots: [ [string_index_0to5, fret_number_absolute, finger_number], ... ]
-            string 0=E(low), 1=A, 2=D, 3=G, 4=B, 5=e(high)
-    barre: { fret, fromStr, toStr }  (optional)
-
-  Verified against standard chord charts (open positions where possible).
-*/
-const DB = {
-  // ━━━ MAJOR OPEN POSITIONS ━━━
-  'C': {
-    open:['x','o',null,null,null,'o'],
-    baseFret:1,
-    dots:[ [1,3,3],[2,2,2],[3,1,1] ]
-    // A:open, D:3rd fret f3, G:2nd fret f2, B:1st fret f1, e:open, E:mute
+// ─── VARIATIONS DATABASE ───────────────────────────────────────────────────
+const VARS = {
+  maj: {
+    'C': [
+      { label:'Cmaj7',  open:['x',null,null,'o','o','o'], baseFret:1, dots:[[1,3,3],[2,2,2]] },
+      { label:'C7',     open:['x','o',null,null,null,'o'], baseFret:1, dots:[[1,3,3],[2,2,2],[4,1,1],[3,3,4]] },
+      { label:'Cadd9',  open:['x','o',null,null,null,null], baseFret:1, dots:[[1,3,3],[2,2,2],[4,3,4],[5,0,'x']] },
+      { label:'Csus2',  open:['x','o',null,null,null,'o'], baseFret:1, dots:[[1,3,3],[2,2,2]] },
+      { label:'Csus4',  open:['x','o',null,null,null,'o'], baseFret:1, dots:[[1,3,3],[2,2,2],[3,1,1],[4,1,1]] },
+    ],
+    'D': [
+      { label:'Dmaj7',  open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,2,2],[5,2,3]] },
+      { label:'D7',     open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,1,2],[5,2,3]] },
+      { label:'Dadd9',  open:['x','x','o',null,'o',null], baseFret:1, dots:[[3,2,1],[4,3,3],[5,0,'o']] },
+      { label:'Dsus2',  open:['x','x','o',null,'o','o'], baseFret:1, dots:[[3,2,1]] },
+      { label:'Dsus4',  open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,3,3],[5,3,4]] },
+    ],
+    'E': [
+      { label:'Emaj7',  open:[null,'o','o',null,'o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
+      { label:'E7',     open:[null,'o','o','o','o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
+      { label:'Eadd9',  open:[null,'o','o',null,'o',null], baseFret:1, dots:[[0,2,2],[1,2,3],[3,1,1],[5,2,4]] },
+      { label:'Esus2',  open:[null,'o','o','o','o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
+      { label:'Esus4',  open:[null,'o','o',null,'o','o'], baseFret:1, dots:[[0,2,2],[1,2,3],[3,2,4]] },
+    ],
+    'F': [
+      { label:'Fmaj7',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[2,2,2],[3,2,3]] },
+      { label:'F7',     open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4]] },
+      { label:'Fadd9',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[5,3,4]] },
+      { label:'Fsus2',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:4}, dots:[[1,3,3],[2,3,4]] },
+      { label:'Fsus4',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[3,3,4]] },
+    ],
+    'G': [
+      { label:'Gmaj7',  open:[null,null,null,'o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[5,2,4]] },
+      { label:'G7',     open:[null,null,null,'o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[5,1,1]] },
+      { label:'Gadd9',  open:[null,null,'o','o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[5,3,4]] },
+      { label:'Gsus2',  open:[null,null,'o','o','o','o'], baseFret:1, dots:[[0,3,2],[1,2,1]] },
+      { label:'Gsus4',  open:[null,null,null,'o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[3,1,1],[5,3,4]] },
+    ],
+    'A': [
+      { label:'Amaj7',  open:['x','o',null,null,null,'o'], baseFret:1, dots:[[2,2,1],[3,2,2],[4,1,3]] },
+      { label:'A7',     open:['x','o',null,null,'o','o'], baseFret:1, dots:[[2,2,1],[3,2,2]] },
+      { label:'Aadd9',  open:['x','o','o',null,null,'o'], baseFret:1, dots:[[3,2,2],[4,2,3]] },
+      { label:'Asus2',  open:['x','o','o',null,'o','o'], baseFret:1, dots:[[3,2,2]] },
+      { label:'Asus4',  open:['x','o',null,null,null,'o'], baseFret:1, dots:[[2,2,1],[3,2,2],[4,3,3]] },
+    ],
+    'B': [
+      { label:'Bmaj7',  open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,3,2]] },
+      { label:'B7',     open:['x',null,'o',null,'o',null], baseFret:1, dots:[[0,2,1],[2,4,4],[3,2,2],[5,2,3]] },
+      { label:'Badd9',  open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,4,4],[5,4,4]] },
+      { label:'Bsus2',  open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3]] },
+      { label:'Bsus4',  open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,4,4],[3,5,4]] },
+    ],
+    'C#': [
+      { label:'C#maj7', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,5,2]] },
+      { label:'C#7',    open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4]] },
+      { label:'C#sus2', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3]] },
+      { label:'C#sus4', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4],[3,7,4]] },
+      { label:'C#add9', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4],[5,6,4]] },
+    ],
+    'D#': [
+      { label:'D#maj7', open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,7,2]] },
+      { label:'D#7',    open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4]] },
+      { label:'D#sus2', open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3]] },
+      { label:'D#sus4', open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4],[3,9,4]] },
+      { label:'D#add9', open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4],[5,8,4]] },
+    ],
+    'F#': [
+      { label:'F#maj7', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,3,2]] },
+      { label:'F#7',    open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4]] },
+      { label:'F#sus2', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3]] },
+      { label:'F#sus4', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4],[3,5,4]] },
+      { label:'F#add9', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4],[5,4,4]] },
+    ],
+    'G#': [
+      { label:'G#maj7', open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,5,2]] },
+      { label:'G#7',    open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4]] },
+      { label:'G#sus2', open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3]] },
+      { label:'G#sus4', open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4],[3,7,4]] },
+      { label:'G#add9', open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4],[5,6,4]] },
+    ],
+    'A#': [
+      { label:'A#maj7', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,2,2]] },
+      { label:'A#7',    open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4]] },
+      { label:'A#sus2', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3]] },
+      { label:'A#sus4', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[3,4,4]] },
+      { label:'A#add9', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[5,3,4]] },
+    ],
   },
-  'D': {
-    open:['x','x','o',null,null,null],
-    baseFret:1,
-    dots:[ [2,2,1],[3,3,3],[4,2,2] ]
-    // D:open, G:2nd f1, B:3rd f3, e:2nd f2
+  min: {
+    'A': [
+      { label:'Am7',   open:['x','o',null,null,'o','o'], baseFret:1, dots:[[2,2,2],[3,2,3]] },
+      { label:'Am9',   open:['x','o',null,null,'o','o'], baseFret:1, dots:[[2,2,2]] },
+      { label:'AmM7',  open:['x','o',null,null,'o','o'], baseFret:1, dots:[[2,2,2],[3,2,3],[4,1,1]] },
+      { label:'Asus2', open:['x','o','o',null,'o','o'],  baseFret:1, dots:[[3,2,2]] },
+      { label:'Aadd9', open:['x','o',null,null,'o',null],baseFret:1, dots:[[2,2,2],[3,2,3],[4,1,1],[5,0,'o']] },
+    ],
+    'B': [
+      { label:'Bm7',   open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3]] },
+      { label:'Bm9',   open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[5,4,4]] },
+      { label:'BmM7',  open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,3,2]] },
+      { label:'Bsus2', open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3]] },
+      { label:'Badd9', open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,4,4],[5,4,4]] },
+    ],
+    'C': [
+      { label:'Cm7',   open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,5,3]] },
+      { label:'Cm9',   open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,5,3],[5,5,4]] },
+      { label:'CmM7',  open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,5,3],[2,4,2]] },
+      { label:'Csus2', open:['x','o',null,null,null,'o'],   baseFret:1, dots:[[1,3,3],[2,2,2]] },
+      { label:'Cadd9', open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,5,3],[2,5,4],[5,5,4]] },
+    ],
+    'D': [
+      { label:'Dm7',   open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,1,2],[5,1,1]] },
+      { label:'Dm9',   open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[5,1,1]] },
+      { label:'DmM7',  open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,2,2],[5,1,1]] },
+      { label:'Dsus2', open:['x','x','o',null,'o','o'],   baseFret:1, dots:[[3,2,1]] },
+      { label:'Dadd9', open:['x','x','o',null,'o',null],  baseFret:1, dots:[[3,2,1],[4,3,3]] },
+    ],
+    'E': [
+      { label:'Em7',   open:['o','o',null,'o','o','o'],  baseFret:1, dots:[[2,2,2]] },
+      { label:'Em9',   open:['o','o',null,'o',null,'o'], baseFret:1, dots:[[2,2,1]] },
+      { label:'EmM7',  open:['o',null,null,'o','o','o'], baseFret:1, dots:[[1,2,2],[2,2,3],[3,1,1]] },
+      { label:'Esus2', open:['o','o','o',null,'o','o'],  baseFret:1, dots:[[1,2,2]] },
+      { label:'Eadd9', open:['o',null,null,'o','o',null],baseFret:1, dots:[[1,2,2],[2,2,3],[5,2,4]] },
+    ],
+    'F': [
+      { label:'Fm7',   open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3]] },
+      { label:'Fm9',   open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[5,3,4]] },
+      { label:'FmM7',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,2,2]] },
+      { label:'Fsus2', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:4}, dots:[[1,3,3]] },
+      { label:'Fadd9', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[5,3,4]] },
+    ],
+    'G': [
+      { label:'Gm7',   open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,5,3]] },
+      { label:'Gm9',   open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,5,3],[5,5,4]] },
+      { label:'GmM7',  open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,5,3],[2,4,2]] },
+      { label:'Gsus2', open:['o',null,null,'o','o',null],    baseFret:1, dots:[[0,3,2],[1,2,1]] },
+      { label:'Gadd9', open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,5,3],[2,5,4],[5,5,4]] },
+    ],
+    'C#': [
+      { label:'C#m7',  open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3]] },
+      { label:'C#m9',  open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[5,6,4]] },
+      { label:'C#mM7', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,5,2]] },
+      { label:'C#sus2',open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3]] },
+      { label:'C#add9',open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4],[5,6,4]] },
+    ],
+    'D#': [
+      { label:'D#m7',  open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3]] },
+      { label:'D#m9',  open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[5,8,4]] },
+      { label:'D#mM7', open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,7,2]] },
+      { label:'D#sus2',open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3]] },
+      { label:'D#add9',open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4],[5,8,4]] },
+    ],
+    'F#': [
+      { label:'F#m7',  open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3]] },
+      { label:'F#m9',  open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[5,4,4]] },
+      { label:'F#mM7', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,3,2]] },
+      { label:'F#sus2',open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3]] },
+      { label:'F#add9',open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4],[5,4,4]] },
+    ],
+    'G#': [
+      { label:'G#m7',  open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3]] },
+      { label:'G#m9',  open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[5,6,4]] },
+      { label:'G#mM7', open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,5,2]] },
+      { label:'G#sus2',open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3]] },
+      { label:'G#add9',open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4],[5,6,4]] },
+    ],
+    'A#': [
+      { label:'A#m7',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3]] },
+      { label:'A#m9',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[5,3,4]] },
+      { label:'A#mM7', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,2,2]] },
+      { label:'A#sus2',open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3]] },
+      { label:'A#add9',open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[5,3,4]] },
+    ],
   },
-  'E': {
-    open:[null,'o',null,null,'o','o'],
-    baseFret:1,
-    dots:[ [0,2,2],[1,2,3],[3,1,1] ]
-    // E:2nd f2, A:open, D:2nd f3, G:1st f1, B:open, e:open
+  dim: {
+    'B': [ { label:'Bdim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] }, { label:'Bm7b5', open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,3,2],[2,4,3]] } ],
+    'C': [ { label:'Cdim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,2,2],[3,3,3],[4,2,1]] }, { label:'Cm7b5', open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,4,2],[2,5,3]] } ],
+    'D': [ { label:'Ddim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,3,2],[3,4,3],[4,3,1]] }, { label:'Dm7b5', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,3,2],[3,4,3],[4,4,4]] } ],
+    'E': [ { label:'Edim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] }, { label:'Em7b5', open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,3,2],[2,4,3]] } ],
+    'F': [ { label:'Fdim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,2,2],[3,3,3],[4,2,1]] }, { label:'Fm7b5', open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,2,2],[2,3,3]] } ],
+    'G': [ { label:'Gdim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,3,2],[3,4,3],[4,3,1]] }, { label:'Gm7b5', open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,4,2],[2,5,3]] } ],
+    'A': [ { label:'Adim7', open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] }, { label:'Am7b5', open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,5,2],[2,6,3]] } ],
+    'C#':[ { label:'C#dim7',open:['x','x',null,null,null,'x'], baseFret:2, dots:[[2,3,2],[3,4,3],[4,3,1]] }, { label:'C#m7b5',open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,5,2],[2,6,3]] } ],
+    'D#':[ { label:'D#dim7',open:['x','x',null,null,null,'x'], baseFret:3, dots:[[2,4,2],[3,5,3],[4,4,1]] }, { label:'D#m7b5',open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,7,2],[2,8,3]] } ],
+    'F#':[ { label:'F#dim7',open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,2,2],[3,3,3],[4,2,1]] }, { label:'F#m7b5',open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,3,2],[2,4,3]] } ],
+    'G#':[ { label:'G#dim7',open:['x','x',null,null,null,'x'], baseFret:2, dots:[[2,3,2],[3,4,3],[4,3,1]] }, { label:'G#m7b5',open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,5,2],[2,6,3]] } ],
+    'A#':[ { label:'A#dim7',open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] }, { label:'A#m7b5',open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,2,2],[2,3,3]] } ],
   },
-  'F': {
-    open:[null,null,null,null,null,null],
-    baseFret:1,
-    barre:{fret:1,fromStr:0,toStr:5},
-    dots:[ [1,3,3],[2,3,4],[3,2,2] ]
-    // full barre 1st fret, A:3rd f3, D:3rd f4, G:2nd f2
-  },
-  'G': {
-    open:[null,'o',null,null,'o',null],
-    baseFret:1,
-    dots:[ [0,2,1],[1,2,2],[5,3,4] ]
-    // E:2nd f1... Actually standard G: E-low:3rd f2, A:2nd f1, B:open, e:3rd f3
-    // Let's use the standard 3-finger G:
-  },
-  'A': {
-    open:['x','o',null,null,null,'o'],
-    baseFret:1,
-    dots:[ [1,2,1],[2,2,2],[3,2,3] ]
-    // A:open, D:2nd f1, G:2nd f2, B:2nd f3, e:open
-    // (index barre or 3 fingers on 2nd fret D G B)
-  },
-  'B': {
-    open:['x',null,null,null,null,null],
-    baseFret:1,
-    barre:{fret:2,fromStr:1,toStr:5},
-    dots:[ [1,4,3],[2,4,4],[3,4,4] ]
-    // barre 2nd, D:4th f3, G:4th f4, B:4th f4 — standard B barre
-  },
-  'C#': {
-    open:['x',null,null,null,null,null],
-    baseFret:4,
-    barre:{fret:4,fromStr:1,toStr:5},
-    dots:[ [1,6,3],[2,6,4],[3,6,4] ]
-  },
-  'D#': {
-    open:['x',null,null,null,null,null],
-    baseFret:6,
-    barre:{fret:6,fromStr:1,toStr:5},
-    dots:[ [1,8,3],[2,8,4],[3,8,4] ]
-  },
-  'F#': {
-    open:[null,null,null,null,null,null],
-    baseFret:2,
-    barre:{fret:2,fromStr:0,toStr:5},
-    dots:[ [1,4,3],[2,4,4],[3,3,2] ]
-  },
-  'G#': {
-    open:[null,null,null,null,null,null],
-    baseFret:4,
-    barre:{fret:4,fromStr:0,toStr:5},
-    dots:[ [1,6,3],[2,6,4],[3,5,2] ]
-  },
-  'A#': {
-    open:[null,null,null,null,null,null],
-    baseFret:1,
-    barre:{fret:1,fromStr:0,toStr:5},
-    dots:[ [1,3,3],[2,3,4],[3,2,2] ]
-  },
-
-  // ━━━ MINOR OPEN POSITIONS ━━━
-  'Am': {
-    open:['x','o',null,null,'o','o'],
-    baseFret:1,
-    dots:[ [1,2,2],[2,2,3],[3,1,1] ]
-    // A:open, D:2nd f2, G:2nd f3, B:1st f1, e:open
-  },
-  'Bm': {
-    open:['x',null,null,null,null,null],
-    baseFret:2,
-    barre:{fret:2,fromStr:1,toStr:5},
-    dots:[ [1,4,3],[2,4,4] ]
-  },
-  'Cm': {
-    open:['x',null,null,null,null,null],
-    baseFret:3,
-    barre:{fret:3,fromStr:1,toStr:5},
-    dots:[ [1,5,3],[2,5,4] ]
-  },
-  'Dm': {
-    open:['x','x','o',null,null,'x'],
-    baseFret:1,
-    dots:[ [2,3,3],[3,2,2],[4,1,1] ]
-    // D:open, G:3rd f3 — wait standard Dm: D:open, G:2nd f1 or: e:1st f1, B:3rd f3, G:2nd f2
-    // Standard Dm: x x 0 2 3 1
-  },
-  'Em': {
-    open:['o','o',null,null,'o','o'],
-    baseFret:1,
-    dots:[ [1,2,2],[2,2,3] ]
-    // E:open, A:open, D:2nd f2, G:2nd f3, B:open, e:open
-  },
-  'Fm': {
-    open:[null,null,null,null,null,null],
-    baseFret:1,
-    barre:{fret:1,fromStr:0,toStr:5},
-    dots:[ [1,3,3],[2,3,4] ]
-  },
-  'Gm': {
-    open:[null,null,null,null,null,null],
-    baseFret:3,
-    barre:{fret:3,fromStr:0,toStr:5},
-    dots:[ [1,5,3],[2,5,4] ]
-  },
-  'C#m': {
-    open:['x',null,null,null,null,null],
-    baseFret:4,
-    barre:{fret:4,fromStr:1,toStr:5},
-    dots:[ [1,6,3],[2,6,4] ]
-  },
-  'D#m': {
-    open:['x',null,null,null,null,null],
-    baseFret:6,
-    barre:{fret:6,fromStr:1,toStr:5},
-    dots:[ [1,8,3],[2,8,4] ]
-  },
-  'F#m': {
-    open:[null,null,null,null,null,null],
-    baseFret:2,
-    barre:{fret:2,fromStr:0,toStr:5},
-    dots:[ [1,4,3],[2,4,4] ]
-  },
-  'G#m': {
-    open:[null,null,null,null,null,null],
-    baseFret:4,
-    barre:{fret:4,fromStr:0,toStr:5},
-    dots:[ [1,6,3],[2,6,4] ]
-  },
-  'A#m': {
-    open:[null,null,null,null,null,null],
-    baseFret:1,
-    barre:{fret:1,fromStr:0,toStr:5},
-    dots:[ [1,3,3],[2,3,4] ]
-  },
-
-  // ━━━ DIM ━━━
-  'B°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,1,1],[3,2,2],[4,1,1] ] },
-  'C°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,2,2],[3,3,3],[4,2,1] ] },
-  'D°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,3,2],[3,4,3],[4,3,1] ] },
-  'E°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,5,2],[3,6,3],[4,5,1] ], baseFret:3 },
-  'F°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,1,1],[3,2,2],[4,1,1] ] },
-  'G°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,2,2],[3,3,3],[4,2,1] ] },
-  'A°':  { open:['x','x',null,null,null,'x'], baseFret:1, dots:[ [2,3,2],[3,4,3],[4,3,1] ] },
 };
 
-// Fix some chords with correct standard fingerings
-// C: x32010  →  E:x A:3 D:2 G:0 B:1 e:0
-DB['C'] = { open:['x',null,null,'o',null,'o'], baseFret:1, dots:[ [0,2,2 ],[1,3,3],[4,1,1] ] };
-// x=E muted, A:3rd fret f3, D:2nd fret f2, G:open, B:1st fret f1, e:open
-// string indices: 0=E,1=A,2=D,3=G,4=B,5=e
-DB['C'] = {
-  open:['x',null,null,'o',null,'o'],
-  baseFret:1,
-  dots:[
-    [1,3,3],  // A string, 3rd fret, finger 3
-    [2,2,2],  // D string, 2nd fret, finger 2
-    [4,1,1],  // B string, 1st fret, finger 1
-  ]
-};
-// D: xx0232
-DB['D'] = {
-  open:['x','x','o',null,null,null],
-  baseFret:1,
-  dots:[
-    [3,2,1],  // G:2nd f1
-    [4,3,3],  // B:3rd f3
-    [5,2,2],  // e:2nd f2
-  ]
-};
-// E: 022100
-DB['E'] = {
-  open:[null,'o','o',null,'o','o'],
-  baseFret:1,
-  dots:[
-    [0,2,2],  // E:2nd f2
-    [1,2,3],  // A:2nd f3
-    [3,1,1],  // G:1st f1
-  ]
-};
-// G: 320003
-DB['G'] = {
-  open:[null,null,null,'o','o',null],
-  baseFret:1,
-  dots:[
-    [0,3,2],  // E:3rd f2
-    [1,2,1],  // A:2nd f1
-    [5,3,3],  // e:3rd f3
-  ]
-};
-// A: x02220
-DB['A'] = {
-  open:['x','o',null,null,null,'o'],
-  baseFret:1,
-  dots:[
-    [2,2,1],  // D:2nd f1
-    [3,2,2],  // G:2nd f2
-    [4,2,3],  // B:2nd f3
-  ]
-};
-// Am: x02210
-DB['Am'] = {
-  open:['x','o',null,null,'o','o'],
-  baseFret:1,
-  dots:[
-    [2,2,2],  // D:2nd f2
-    [3,2,3],  // G:2nd f3
-    [4,1,1],  // B:1st f1
-  ]
-};
-// Em: 022000
-DB['Em'] = {
-  open:['o','o',null,null,'o','o'],
-  baseFret:1,
-  dots:[
-    [2,2,2],  // D:2nd f2
-    [3,2,3],  // G:2nd f3 — wait, Em is 022000: A:2, D:2, rest open
-    // Actually Em standard: 0 2 2 0 0 0
-  ]
-};
-DB['Em'] = {
-  open:['o',null,null,'o','o','o'],
-  baseFret:1,
-  dots:[
-    [1,2,2],  // A:2nd f2
-    [2,2,3],  // D:2nd f3
-  ]
-};
-// Dm: xx0231
-DB['Dm'] = {
-  open:['x','x','o',null,null,null],
-  baseFret:1,
-  dots:[
-    [3,2,1],  // G:2nd f1 — wait Dm: xx0231: D:open, G:2, B:3, e:1
-    [4,3,3],  // B:3rd f3
-    [5,1,1],  // e:1st f1
-  ]
-};
+function getVars(note, quality) {
+  const key = quality==='maj'?'maj': quality==='min'?'min':'dim';
+  return (VARS[key]&&VARS[key][note]) || [];
+}
 
-// ─── RENDER DIAGRAM ────────────────────────────────────────────────────────
-function renderDiagram(key, quality) {
-  const sym = quality==='min' ? key+'m' : quality==='dim' ? key+'°' : key;
-  const data = DB[sym];
-  if (!data) return `<div style="font-size:12px;color:var(--text3);padding:16px 0;text-align:center">Diagramma non disponibile</div>`;
-
+// ─── SHARED DIAGRAM RENDERER ───────────────────────────────────────────────
+function renderDiagramFromData(data, label) {
+  if (!data) return `<div style="font-size:12px;color:var(--text3);padding:20px 0;text-align:center;font-style:italic">Diagramma non disponibile</div>`;
   const {open, baseFret, dots, barre} = data;
-  const FRETS = 4;
-  const STR = 6; // 0=E low, 5=e high
-  const strLabels = ['E','A','D','G','B','e'];
-
-  // Build lookup: dotMap[fret][string] = finger
-  const dotMap = {};
-  (dots||[]).forEach(([str, fret, finger]) => {
-    const rf = fret - baseFret + 1; // relative fret (1-based)
-    if (!dotMap[rf]) dotMap[rf] = {};
-    dotMap[rf][str] = finger;
+  const FRETS=4, STR=6;
+  const dotMap={};
+  (dots||[]).forEach(([str,fret,finger])=>{
+    if(finger==='o'||finger==='x') return;
+    const rf=fret-baseFret+1;
+    if(rf<1||rf>FRETS) return;
+    if(!dotMap[rf])dotMap[rf]={};
+    dotMap[rf][str]=finger;
   });
-
-  let h = `<div class="dgm">`;
-  h += `<div class="dgm-title">${csym(key,quality)}</div>`;
-
-  // Top row: open/muted symbols
-  h += `<div class="dgm-top"><div class="dgm-top-spacer"></div><div class="dgm-top-cells">`;
-  for (let s=0; s<STR; s++) {
-    const o = open[s];
-    if (o==='x') h += `<div class="dgm-top-cell x">×</div>`;
-    else if (o==='o') h += `<div class="dgm-top-cell">○</div>`;
-    else h += `<div class="dgm-top-cell"></div>`;
+  let h=`<div class="dgm">`;
+  h+=`<div class="dgm-title">${label}</div>`;
+  h+=`<div class="dgm-top"><div class="dgm-top-spacer"></div><div class="dgm-top-cells">`;
+  for(let s=0;s<STR;s++){
+    const o=open[s];
+    if(o==='x') h+=`<div class="dgm-top-cell x">×</div>`;
+    else if(o==='o') h+=`<div class="dgm-top-cell">○</div>`;
+    else h+=`<div class="dgm-top-cell"></div>`;
   }
-  h += `</div></div>`;
-
-  // Nut (only if baseFret===1)
-  if (baseFret === 1) {
-    h += `<div class="dgm-nut-row"><div class="dgm-nut-spacer"></div><div class="dgm-nut"></div></div>`;
-  }
-
-  // Fret rows (4 rows)
-  for (let rf=1; rf<=FRETS; rf++) {
-    const absFret = baseFret + rf - 1;
-    h += `<div class="dgm-row">`;
-    h += `<div class="dgm-fnum">${absFret}</div>`;
-    h += `<div class="dgm-cells">`;
-
-    // Barre logic: does this fret have a barre?
-    const hasBarreHere = barre && barre.fret === absFret;
-    const barreFrom = hasBarreHere ? barre.fromStr : -1;
-    const barreTo   = hasBarreHere ? barre.toStr   : -1;
-
-    for (let s=0; s<STR; s++) {
-      const inBarre = hasBarreHere && s >= barreFrom && s <= barreTo;
-      const hasDot  = dotMap[rf] && dotMap[rf][s] !== undefined;
-
-      h += `<div class="dgm-cell" style="position:relative">`;
-      if (inBarre) {
-        // Draw barre bar across all barre cells
-        if (s === barreFrom) {
-          // leftmost barre cell: start the bar
-          const span = (barreTo - barreFrom + 1) * 26; // 26px per cell
-          h += `<div style="position:absolute;left:4px;top:50%;transform:translateY(-50%);
-            width:${span - 8}px;height:18px;background:#1d1d1f;border-radius:9px;z-index:3"></div>`;
+  h+=`</div></div>`;
+  if(baseFret===1) h+=`<div class="dgm-nut-row"><div class="dgm-nut-spacer"></div><div class="dgm-nut"></div></div>`;
+  for(let rf=1;rf<=FRETS;rf++){
+    const af=baseFret+rf-1;
+    h+=`<div class="dgm-row"><div class="dgm-fnum">${af}</div><div class="dgm-cells">`;
+    const hasB=barre&&barre.fret===af;
+    for(let s=0;s<STR;s++){
+      const inB=hasB&&s>=barre.fromStr&&s<=barre.toStr;
+      const hasDot=dotMap[rf]&&dotMap[rf][s]!==undefined;
+      h+=`<div class="dgm-cell" style="position:relative">`;
+      if(inB){
+        if(s===barre.fromStr){
+          const span=(barre.toStr-barre.fromStr+1)*28;
+          h+=`<div style="position:absolute;left:4px;top:50%;transform:translateY(-50%);width:${span-8}px;height:20px;background:var(--gold);border-radius:10px;z-index:3;box-shadow:0 0 10px rgba(245,200,66,0.5)"></div>`;
         }
-        if (hasDot) {
-          h += `<div class="dot" style="z-index:4;background:#fff;color:#1d1d1f;border:2px solid #1d1d1f">
-            ${dotMap[rf][s]}</div>`;
-        }
-      } else if (hasDot) {
-        h += `<div class="dot">${dotMap[rf][s]}</div>`;
+        if(hasDot) h+=`<div class="dot" style="z-index:4;background:#0e0e10;color:var(--gold);border:2px solid var(--gold)">${dotMap[rf][s]}</div>`;
+      } else if(hasDot){
+        h+=`<div class="dot">${dotMap[rf][s]}</div>`;
       }
-      h += `</div>`;
+      h+=`</div>`;
     }
-    h += `</div></div>`;
+    h+=`</div></div>`;
   }
-
-  if (baseFret > 1) h += `<div class="dgm-pos">${baseFret}° tasto</div>`;
-  h += `</div>`; // .dgm
+  if(baseFret>1) h+=`<div class="dgm-pos">${baseFret}° TASTO</div>`;
+  h+=`</div>`;
   return h;
 }
 
-// ─── STATE & UI ────────────────────────────────────────────────────────────
+const DB = {
+  'C':  { open:['x',null,null,'o',null,'o'], baseFret:1, dots:[[1,3,3],[2,2,2],[4,1,1]] },
+  'D':  { open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,3,3],[5,2,2]] },
+  'E':  { open:[null,'o','o',null,'o','o'],  baseFret:1, dots:[[0,2,2],[1,2,3],[3,1,1]] },
+  'F':  { open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[3,2,2]] },
+  'G':  { open:[null,null,null,'o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[5,3,3]] },
+  'A':  { open:['x','o',null,null,null,'o'], baseFret:1, dots:[[2,2,1],[3,2,2],[4,2,3]] },
+  'B':  { open:['x',null,null,null,null,null], baseFret:1, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,4,4],[3,4,4]] },
+  'C#': { open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4],[3,6,4]] },
+  'D#': { open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4],[3,8,4]] },
+  'F#': { open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4],[3,3,2]] },
+  'G#': { open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4],[3,5,2]] },
+  'A#': { open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[3,2,2]] },
+  'Am': { open:['x','o',null,null,'o','o'],  baseFret:1, dots:[[2,2,2],[3,2,3],[4,1,1]] },
+  'Bm': { open:['x',null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:1,toStr:5}, dots:[[1,4,3],[2,4,4]] },
+  'Cm': { open:['x',null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:1,toStr:5}, dots:[[1,5,3],[2,5,4]] },
+  'Dm': { open:['x','x','o',null,null,null],  baseFret:1, dots:[[3,2,1],[4,3,3],[5,1,1]] },
+  'Em': { open:['o',null,null,'o','o','o'],   baseFret:1, dots:[[1,2,2],[2,2,3]] },
+  'Fm': { open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4]] },
+  'Gm': { open:[null,null,null,null,null,null], baseFret:3, barre:{fret:3,fromStr:0,toStr:5}, dots:[[1,5,3],[2,5,4]] },
+  'C#m':{ open:['x',null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:1,toStr:5}, dots:[[1,6,3],[2,6,4]] },
+  'D#m':{ open:['x',null,null,null,null,null], baseFret:6, barre:{fret:6,fromStr:1,toStr:5}, dots:[[1,8,3],[2,8,4]] },
+  'F#m':{ open:[null,null,null,null,null,null], baseFret:2, barre:{fret:2,fromStr:0,toStr:5}, dots:[[1,4,3],[2,4,4]] },
+  'G#m':{ open:[null,null,null,null,null,null], baseFret:4, barre:{fret:4,fromStr:0,toStr:5}, dots:[[1,6,3],[2,6,4]] },
+  'A#m':{ open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4]] },
+  'B°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] },
+  'C°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,2,2],[3,3,3],[4,2,1]] },
+  'D°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,3,2],[3,4,3],[4,3,1]] },
+  'F°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,1,1],[3,2,2],[4,1,1]] },
+  'G°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,2,2],[3,3,3],[4,2,1]] },
+  'A°': { open:['x','x',null,null,null,'x'], baseFret:1, dots:[[2,3,2],[3,4,3],[4,3,1]] },
+  'E°': { open:['x','x',null,null,null,'x'], baseFret:3, dots:[[2,5,2],[3,6,3],[4,5,1]] },
+};
+
+function renderDiagram(key, quality) {
+  const sym = quality==='min'?key+'m':quality==='dim'?key+'°':key;
+  return renderDiagramFromData(DB[sym], sym);
+}
+
 let mode='major', selKey=null, openId=null;
 
 function setMode(m){
   mode=m; selKey=null; openId=null;
-  document.getElementById('btn-major').classList.toggle('active',m==='major');
-  document.getElementById('btn-minor').classList.toggle('active',m==='minor');
+  const bMaj=document.getElementById('btn-major');
+  const bMin=document.getElementById('btn-minor');
+  bMaj.className='seg-btn'+(m==='major'?' active':'');
+  bMin.className='seg-btn'+(m==='minor'?' minor-active':'');
   renderKeys();
   document.getElementById('result').innerHTML='';
 }
@@ -544,11 +754,50 @@ function toggle(id){
   openId=row.classList.contains('open')?id:null;
 }
 
-function chordsBlock(notes, qs, rs){
+function varLabel(lbl) {
+  // detect type for color
+  if(/maj7|M7/.test(lbl)) return 'var-maj7';
+  if(/m7b5|dim7/.test(lbl)) return 'var-dim';
+  if(/7/.test(lbl)) return 'var-7';
+  if(/add9|9/.test(lbl)) return 'var-9';
+  if(/sus/.test(lbl)) return 'var-sus';
+  return 'var-other';
+}
+
+function chordsBlock(notes,qs,rs){
   return notes.map((note,i)=>{
     const sym=csym(note,qs[i]);
     const id='cr'+i+note+mode;
     const bc=i===0?'ton':i===4?'dom':'';
+    const variations=getVars(note, qs[i]);
+
+    // Variation rows (each as a sub-row inside the same group)
+    const varRows = variations.map((v,vi)=>{
+      const vid='var'+i+vi+note+mode;
+      const flatLabel = v.label
+        .replace(/C#/g,'C#/Db').replace(/D#/g,'D#/Eb')
+        .replace(/F#/g,'F#/Gb').replace(/G#/g,'G#/Ab').replace(/A#/g,'A#/Bb');
+      // keep label short — just the flat notation not the slash version for display
+      const dispLabel = v.label
+        .replace(/C#/g,fb('C#')).replace(/D#/g,fb('D#'))
+        .replace(/F#/g,fb('F#')).replace(/G#/g,fb('G#')).replace(/A#/g,fb('A#'));
+      const vc=varLabel(v.label);
+      return `
+        <div class="chord-row var-row" id="${vid}">
+          <div class="chord-sum" onclick="toggle('${vid}')">
+            <div class="cbadge vbadge ${vc}">${dispLabel.replace(/(.+?)(maj7|mM7|m7b5|dim7|sus[24]|add9|m9|M7|7|9)/,'$2')}</div>
+            <div class="cinfo">
+              <div class="cname" style="font-size:16px">${dispLabel}</div>
+              <div class="crole">Variazione di ${sym}</div>
+            </div>
+            <div class="chev">›</div>
+          </div>
+          <div class="tab-panel">
+            <div class="tab-inner">${renderDiagramFromData(v, dispLabel)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
     return `
       <div class="chord-row" id="${id}">
         <div class="chord-sum" onclick="toggle('${id}')">
@@ -557,9 +806,10 @@ function chordsBlock(notes, qs, rs){
           <div class="chev">›</div>
         </div>
         <div class="tab-panel">
-          <div class="tab-inner">${renderDiagram(note, qs[i])}</div>
+          <div class="tab-inner">${renderDiagram(note,qs[i])}</div>
         </div>
-      </div>`;
+      </div>
+      ${varRows}`;
   }).join('');
 }
 
@@ -569,13 +819,13 @@ function renderMaj(r){
   document.getElementById('result').innerHTML=`
   <div class="result">
     <div class="card">
-      <div class="card-label">Scala pentatonica</div>
+      <div class="card-label">Scala pentatonica consigliata</div>
       <div class="penta-main"><div class="penta-key">${fb(rm)}m</div><div class="penta-sub">Pentatonica minore</div></div>
       <div class="notes-row">${pMin.map(n=>`<span class="note-tag">${fb(n)}</span>`).join('')}</div>
-      <div class="div"></div>
-      <div class="penta-main"><div class="penta-key dk" style="font-size:26px">${fb(r)}</div><div class="penta-sub">Pentatonica maggiore</div></div>
-      <div class="notes-row">${pMaj.map(n=>`<span class="note-tag dk">${fb(n)}</span>`).join('')}</div>
-      <div class="div"></div>
+      <div class="divider"></div>
+      <div class="penta-main"><div class="penta-key sm">${fb(r)}</div><div class="penta-sub">Pentatonica maggiore</div></div>
+      <div class="notes-row">${pMaj.map(n=>`<span class="note-tag cyan">${fb(n)}</span>`).join('')}</div>
+      <div class="divider"></div>
       <div class="hint"><strong>${fb(rm)}m</strong> è la relativa minore di ${fb(r)}: stesse note, sound blues e rock.</div>
     </div>
     <div class="chords-card">
@@ -592,9 +842,9 @@ function renderMin(r){
   <div class="result">
     <div class="card">
       <div class="card-label">Scala pentatonica</div>
-      <div class="penta-main"><div class="penta-key dk">${fb(r)}m</div><div class="penta-sub">Pentatonica minore</div></div>
-      <div class="notes-row">${pMin.map(n=>`<span class="note-tag dk">${fb(n)}</span>`).join('')}</div>
-      <div class="div"></div>
+      <div class="penta-main"><div class="penta-key cyan">${fb(r)}m</div><div class="penta-sub">Pentatonica minore</div></div>
+      <div class="notes-row">${pMin.map(n=>`<span class="note-tag cyan">${fb(n)}</span>`).join('')}</div>
+      <div class="divider"></div>
       <div class="hint">Usa la pentatonica di <strong>${fb(r)}m</strong>. Le stesse note funzionano anche per la relativa maggiore <strong>${fb(rm)}</strong>.</div>
     </div>
     <div class="chords-card">
@@ -606,7 +856,10 @@ function renderMin(r){
 
 renderKeys();
 document.getElementById('result').innerHTML=`
-  <div class="empty"><div class="empty-icon">♩</div><div class="empty-text">Seleziona una tonalità</div></div>`;
+  <div class="empty">
+    <div class="empty-icon">♩</div>
+    <div class="empty-text">Seleziona una tonalità per iniziare</div>
+  </div>`;
 </script>
 </body>
 </html>
