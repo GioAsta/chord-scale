@@ -156,6 +156,7 @@
   }
 
   .key-btn span { position: relative; z-index: 1; }
+  .key-btn .km { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 0.55em; letter-spacing: 0; vertical-align: baseline; position: relative; z-index: 1; align-self: flex-end; margin-bottom: 3px; }
   .key-btn .enh { font-size: 9px; color: var(--text3); margin-top: 1px; position: relative; z-index: 1; font-family: 'Barlow', sans-serif; font-weight: 600; letter-spacing: 0.5px; }
 
   .key-btn:active { transform: scale(.90); }
@@ -219,8 +220,14 @@
     color: var(--gold); line-height: 1;
     text-shadow: 0 0 30px rgba(245,200,66,0.4);
   }
+  .penta-key .pk-suffix {
+    font-family: 'Barlow', sans-serif;
+    font-size: 28px; font-weight: 700;
+    letter-spacing: 0; vertical-align: baseline;
+  }
   .penta-key.cyan { color: var(--cyan); text-shadow: 0 0 30px rgba(0,229,212,0.4); }
   .penta-key.sm   { font-size: 32px; color: var(--text2); text-shadow: none; }
+  .penta-key.sm .pk-suffix { font-size: 18px; }
 
   .penta-sub { font-size: 13px; color: var(--text2); font-weight: 400; }
 
@@ -293,6 +300,7 @@
     font-size: 18px; font-weight: 700; letter-spacing: 0.1px; color: var(--text);
   }
   .cname .rl { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.5px; }
+  .cname .pk-suffix { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0; vertical-align: baseline; }
   .crole { font-size: 11px; color: var(--text3); margin-top: 1px; letter-spacing: 0.2px; }
 
   .chev { font-size: 18px; color: var(--text3); transition: transform .22s; flex-shrink: 0; }
@@ -771,11 +779,41 @@ function renderDiagram(key, quality) {
   return renderDiagramFromData(DB[sym], sym);
 }
 
-// Format chord name: root letter big, suffix lowercase normal weight
+// Format chord name: root LETTER only in Bebas, everything else in Barlow lowercase
+// Also capitalizes the letter after "/" for enharmonic equivalents (e.g. "D#/Ebm7")
 function fmtChord(sym) {
-  const m = sym.match(/^([A-G][#b]?)(.*)/);
+  // Handle slash notation: split on "/" and format each part
+  if (sym.includes('/')) {
+    const parts = sym.split('/');
+    // First part: full fmtChord treatment
+    // Second part: starts with a capital letter + rest, just capitalize the first letter
+    const first = parts[0];
+    const second = parts[1];
+    const m1 = first.match(/^([A-G])([#b]?)(.*)/);
+    const m2 = second.match(/^([A-G])([#b]?)(.*)/);
+    const p1 = m1
+      ? `<span class="rl">${m1[1]}</span>${(m1[2]+m1[3]) ? `<span class="pk-suffix" style="font-size:0.55em;vertical-align:baseline">${m1[2]+m1[3]}</span>` : ''}`
+      : first;
+    const p2 = m2
+      ? `<span class="rl" style="font-size:0.75em">${m2[1]}</span>${(m2[2]+m2[3]) ? `<span class="pk-suffix" style="font-size:0.55em;vertical-align:baseline">${m2[2]+m2[3]}</span>` : ''}`
+      : second;
+    return `${p1}<span class="pk-suffix" style="font-size:0.55em;vertical-align:baseline">/</span>${p2}`;
+  }
+  const m = sym.match(/^([A-G])([#b]?)(.*)/);
   if (!m) return sym;
-  return `<span class="rl">${m[1]}</span>${m[2]}`;
+  const suffix = m[2] + m[3];
+  return `<span class="rl">${m[1]}</span>${suffix ? `<span class="pk-suffix" style="font-size:0.55em;vertical-align:baseline">${suffix}</span>` : ''}`;
+}
+
+// For large penta-key display (note + optional "m")
+function fmtPenta(note, suffix) {
+  // note may be "Gb", "Bb", "A", "C#" etc.
+  const m = note.match(/^([A-G])([#b]?)/);
+  if (!m) return note + suffix;
+  const letter = m[1];
+  const acc    = m[2];
+  const all    = acc + suffix; // e.g. "bm" or "m" or "#m" or ""
+  return `${letter}${all ? `<span class="pk-suffix">${all}</span>` : ''}`;
 }
 
 let mode='major', selKey=null, openId=null;
@@ -797,8 +835,12 @@ function renderKeys(){
     const btn=document.createElement('button');
     btn.className='key-btn'+(mode==='minor'?' minor-mode':'');
     if(selKey===note) btn.classList.add('sel');
-    const suf=mode==='minor'?'m':'';
-    btn.innerHTML=`<span>${note}${suf}</span>${hasFlat?`<span class="enh">${f}${suf}</span>`:''}`;
+    if(mode==='minor'){
+      // Note + m on same line, enharmonic below
+      btn.innerHTML=`<span style="position:relative;z-index:1;display:flex;align-items:flex-end;line-height:1">${note}<span class="km">m</span></span>${hasFlat?`<span class="enh">${f}m</span>`:''}`;
+    } else {
+      btn.innerHTML=`<span style="position:relative;z-index:1">${note}</span>${hasFlat?`<span class="enh">${f}</span>`:''}`;
+    }
     btn.onclick=()=>{selKey=note;openId=null;renderKeys();mode==='major'?renderMaj(note):renderMin(note)};
     g.appendChild(btn);
   });
@@ -876,10 +918,10 @@ function renderMaj(r){
   <div class="result">
     <div class="card">
       <div class="card-label">Scala pentatonica consigliata</div>
-      <div class="penta-main"><div class="penta-key">${fb(rm)}m</div><div class="penta-sub">Pentatonica minore</div></div>
+      <div class="penta-main"><div class="penta-key">${fmtPenta(fb(rm),'m')}</div><div class="penta-sub">Pentatonica minore</div></div>
       <div class="notes-row">${pMin.map(n=>`<span class="note-tag">${fb(n)}</span>`).join('')}</div>
       <div class="divider"></div>
-      <div class="penta-main"><div class="penta-key sm">${fb(r)}</div><div class="penta-sub">Pentatonica maggiore</div></div>
+      <div class="penta-main"><div class="penta-key sm">${fmtPenta(fb(r),'')}</div><div class="penta-sub">Pentatonica maggiore</div></div>
       <div class="notes-row">${pMaj.map(n=>`<span class="note-tag cyan">${fb(n)}</span>`).join('')}</div>
       <div class="divider"></div>
       <div class="hint"><strong>${fb(rm)}m</strong> è la relativa minore di ${fb(r)}: stesse note, sound blues e rock.</div>
@@ -898,7 +940,7 @@ function renderMin(r){
   <div class="result">
     <div class="card">
       <div class="card-label">Scala pentatonica</div>
-      <div class="penta-main"><div class="penta-key cyan">${fb(r)}m</div><div class="penta-sub">Pentatonica minore</div></div>
+      <div class="penta-main"><div class="penta-key cyan">${fmtPenta(fb(r),'m')}</div><div class="penta-sub">Pentatonica minore</div></div>
       <div class="notes-row">${pMin.map(n=>`<span class="note-tag cyan">${fb(n)}</span>`).join('')}</div>
       <div class="divider"></div>
       <div class="hint">Usa la pentatonica di <strong>${fb(r)}m</strong>. Le stesse note funzionano anche per la relativa maggiore <strong>${fb(rm)}</strong>.</div>
@@ -919,3 +961,4 @@ document.getElementById('result').innerHTML=`
 </script>
 </body>
 </html>
+
