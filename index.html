@@ -424,11 +424,11 @@ const VARS = {
       { label:'Dsus4',  open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,3,3],[5,3,4]] },
     ],
     'E': [
-      { label:'Emaj7',  open:[null,'o','o',null,'o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
-      { label:'E7',     open:[null,'o','o','o','o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
-      { label:'Eadd9',  open:[null,'o','o',null,'o',null], baseFret:1, dots:[[0,2,2],[1,2,3],[3,1,1],[5,2,4]] },
-      { label:'Esus2',  open:[null,'o','o','o','o','o'], baseFret:1, dots:[[0,2,2],[1,2,3]] },
-      { label:'Esus4',  open:[null,'o','o',null,'o','o'], baseFret:1, dots:[[0,2,2],[1,2,3],[3,2,4]] },
+      { label:'Emaj7',  open:['o','o','o',null,'o','o'], baseFret:1, dots:[[3,1,1],[1,2,2],[2,2,3]] },
+      { label:'E7',     open:['o','o','o','o','o','o'], baseFret:1, dots:[[1,2,2],[2,2,3]] },
+      { label:'Eadd9',  open:['o','o','o',null,'o',null], baseFret:1, dots:[[3,1,1],[1,2,2],[2,2,3],[5,2,4]] },
+      { label:'Esus2',  open:['o','o','o',null,'o','o'], baseFret:1, dots:[[1,2,2],[2,2,3]] },
+      { label:'Esus4',  open:['o','o','o',null,'o','o'], baseFret:1, dots:[[1,2,2],[2,2,3],[3,2,4]] },
     ],
     'F': [
       { label:'Fmaj7',  open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[2,2,2],[3,2,3]] },
@@ -743,7 +743,7 @@ function renderDiagramFromData(data, label) {
 const DB = {
   'C':  { open:['x',null,null,'o',null,'o'], baseFret:1, dots:[[1,3,3],[2,2,2],[4,1,1]] },
   'D':  { open:['x','x','o',null,null,null], baseFret:1, dots:[[3,2,1],[4,3,3],[5,2,2]] },
-  'E':  { open:[null,'o','o',null,'o','o'],  baseFret:1, dots:[[0,2,2],[1,2,3],[3,1,1]] },
+  'E':  { open:['o','o','o',null,'o','o'],  baseFret:1, dots:[[3,1,1],[1,2,2],[2,2,3]] },
   'F':  { open:[null,null,null,null,null,null], baseFret:1, barre:{fret:1,fromStr:0,toStr:5}, dots:[[1,3,3],[2,3,4],[3,2,2]] },
   'G':  { open:[null,null,null,'o','o',null], baseFret:1, dots:[[0,3,2],[1,2,1],[5,3,3]] },
   'A':  { open:['x','o',null,null,null,'o'], baseFret:1, dots:[[2,2,1],[3,2,2],[4,2,3]] },
@@ -961,4 +961,3 @@ document.getElementById('result').innerHTML=`
 </script>
 </body>
 </html>
-
